@@ -1,18 +1,19 @@
+mod commands;
 mod configuration;
 mod language;
 mod logging;
 mod secrets;
+mod utilities;
 
 use clap::Parser;
-use language::get_text;
-use logging::{log_matrix_error, log_message, LogMessageType::*};
+use logging::{log_message, LogMessageType::*};
 use matrix_sdk::event_handler::Ctx;
 use matrix_sdk::{
     config::SyncSettings,
     room::Room,
     ruma::events::room::{
         member::StrippedRoomMemberEvent,
-        message::{MessageType, OriginalSyncRoomMessageEvent, RoomMessageEventContent},
+        message::{MessageType, OriginalSyncRoomMessageEvent},
     },
     Client,
 };
@@ -38,7 +39,7 @@ struct Arguments {
 }
 
 #[derive(Clone)]
-struct MatrixState {
+pub struct MatrixState {
     configuration: configuration::Configuration,
 }
 
@@ -210,18 +211,27 @@ async fn on_room_message(
         match event.content.msgtype {
             MessageType::Text(_) => {
                 let body = event.content.body();
-                if !body.starts_with(&matrix_state.configuration.command_prefix) {
-                    return;
-                }
 
-                if body.starts_with(&format!(
-                    "{}{}",
-                    matrix_state.configuration.command_prefix, "ping"
-                )) {
-                    log_matrix_error(
-                        room.send(RoomMessageEventContent::text_plain(get_text("pong")), None)
-                            .await,
-                    );
+                if body.starts_with(&matrix_state.configuration.command_prefix) {
+                    let mut characters = body.split(" ").nth(0).unwrap().chars();
+                    characters.next();
+                    let command = characters.as_str();
+                    let arguments: Vec<String> = body
+                        .split(" ")
+                        .skip(1)
+                        .map(|item| item.to_string())
+                        .collect();
+
+                    let command_input = commands::CommandInput {
+                        event: event.clone(),
+                        room,
+                        matrix_state,
+                        arguments,
+                    };
+                    match command {
+                        "ping" => commands::basic::ping_command(&command_input).await,
+                        _ => (),
+                    };
                 }
             }
             _ => (),
