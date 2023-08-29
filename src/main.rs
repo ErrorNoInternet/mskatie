@@ -131,7 +131,7 @@ async fn login_and_sync(
 
     log_message(
         Matrix,
-        &format!("Logging in as @{}:{}...", &username, &homeserver_url),
+        &format!("Logging in as {} on {}...", &username, &homeserver_url),
     );
     match client
         .login_username(username, password)
@@ -149,7 +149,7 @@ async fn login_and_sync(
     log_message(
         Matrix,
         &format!(
-            "Successfully logged in as @{}:{}!",
+            "Successfully logged in as {} on {}!",
             &username, &homeserver_url
         ),
     );
