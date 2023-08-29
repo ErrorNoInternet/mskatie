@@ -50,6 +50,27 @@ async fn main() -> anyhow::Result<()> {
     );
 
     let arguments = Arguments::parse();
+    if arguments.generate_configuration_file {
+        match configuration::Configuration::default()
+            .to_json_file(Path::new(arguments.configuration_file.as_str()))
+        {
+            Ok(_) => log_message(
+                Bot,
+                &format!(
+                    "Successfully saved new configuration to {}!",
+                    arguments.configuration_file
+                ),
+            ),
+            Err(error) => log_message(
+                Error,
+                &format!(
+                    "Unable to save configuration to {}: {error}",
+                    arguments.configuration_file
+                ),
+            ),
+        };
+        std::process::exit(0);
+    }
     let bot_secrets =
         match secrets::Secrets::from_json_file(Path::new(arguments.secrets_file.as_str())) {
             Ok(bot_secrets) => bot_secrets,
@@ -79,27 +100,6 @@ async fn main() -> anyhow::Result<()> {
             configuration::Configuration::default()
         }
     };
-    if arguments.generate_configuration_file {
-        match configuration::Configuration::default()
-            .to_json_file(Path::new(arguments.configuration_file.as_str()))
-        {
-            Ok(_) => log_message(
-                Bot,
-                &format!(
-                    "Successfully saved new configuration to {}!",
-                    arguments.configuration_file
-                ),
-            ),
-            Err(error) => log_message(
-                Error,
-                &format!(
-                    "Unable to save configuration to {}: {error}",
-                    arguments.configuration_file
-                ),
-            ),
-        };
-        std::process::exit(0);
-    }
 
     login_and_sync(
         bot_secrets.homeserver_url,
