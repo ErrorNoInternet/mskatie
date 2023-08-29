@@ -23,7 +23,7 @@ pub fn log_message(message_type: LogMessageType, message: &String) {
             println!(
                 "{} {} {}",
                 current_time(),
-                colored_brackets(&"Bot".bold().magenta()),
+                colored_brackets(&"BOT".bold().magenta()),
                 message
             )
         }
