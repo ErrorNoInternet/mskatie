@@ -3,6 +3,7 @@ use std::path::Path;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Configuration {
+    #[serde(default)]
     pub command_prefix: String,
 }
 
